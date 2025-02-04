@@ -1,9 +1,85 @@
 import path from 'path';
 import * as vscode from 'vscode';
+import fs from 'fs';
+
+class StorageData {
+    readonly version: string = "1.0.0";
+    public tree?: TreeItem;
+}
 
 class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+    private storagePath: string | undefined;
+    private readonly filename: string = 'scolution.json';
+    private root?: StorageData | null;
+
+    constructor() {
+        const workspaceRoot = vscode.workspace.workspaceFolders;
+        if (!workspaceRoot || workspaceRoot.length == 0) return;
+        const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
+        this.storagePath = path.join(vscodePath, this.filename);
+
+        // Create .vscode directory if it doesn't exist
+        if (!fs.existsSync(vscodePath)) {
+            fs.mkdirSync(vscodePath);
+        }
+
+        // Create storage file if it doesn't exist
+        if (!fs.existsSync(this.storagePath)) {
+            this.saveData(new StorageData());
+        }
+
+        this.root = this.getData();
+    }
+
+    public getData<T>(): T | null {
+        try {
+            if (!this.storagePath) {
+                return null;
+            }
+
+            const rawData = fs.readFileSync(this.storagePath, 'utf8');
+            return JSON.parse(rawData); // TODO convert to type
+        } catch (error) {
+            console.error('Error reading workspace data:', error);
+            return null;
+        }
+    }
+
+    public saveData(data: StorageData): boolean {
+        try {
+            if (!this.storagePath) {
+                return false;
+            }
+
+            fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2));
+            return true;
+        } catch (error) {
+            console.error('Error saving workspace data:', error);
+            return false;
+        }
+    }
+
+    public watchStorage(callback: () => void) {
+        if (!this.storagePath) {
+            return;
+        }
+
+        // Watch for changes to the storage file
+        const watcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(
+                path.dirname(this.storagePath),
+                path.basename(this.storagePath)
+            )
+        );
+
+        watcher.onDidChange(callback);
+        watcher.onDidCreate(callback);
+        watcher.onDidDelete(callback);
+
+        return watcher;
+    }
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -15,25 +91,13 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
         if (element) {
-			const folders = vscode.workspace.workspaceFolders
-			if (!folders) {
-				return Promise.resolve([]);
-			}
-
-			const root = folders[0].uri.fsPath;
-
-            // Return children for the given element
-            return Promise.resolve([
-                new TreeItem('extension', vscode.TreeItemCollapsibleState.None, `${root}/src/extension.ts`, '.ts'),
-                new TreeItem('icon', vscode.TreeItemCollapsibleState.None, `${root}/media/icon.svg`, '.svg'),
-				new TreeItem('conduit', vscode.TreeItemCollapsibleState.None, `${root}/conduit.go`, '.go')
-            ]);
+            return Promise.resolve(element.branches || []);
         } else {
-            // Return root elements
-            return Promise.resolve([
-                new TreeItem('Item 1', vscode.TreeItemCollapsibleState.Collapsed, ''),
-                new TreeItem('Item 2', vscode.TreeItemCollapsibleState.Collapsed, '')
-            ]);
+            if (this.root) {
+                return Promise.resolve(this.root.tree?.branches || []);
+            } else {
+                return Promise.resolve([]);
+            }
         }
     }
 
@@ -104,6 +168,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
 class TreeItem extends vscode.TreeItem {
 	public path: string;
+    public branches?: TreeItem[];
 
     constructor(
         public readonly label: string,
@@ -151,6 +216,15 @@ export function activate(context: vscode.ExtensionContext) {
         const targetUri = uri || (vscode.workspace.workspaceFolders?.[0].uri);
         if (targetUri) {
             // await createNewFile(targetUri);
+            const folders = vscode.workspace.workspaceFolders
+			if (!folders) {
+				return Promise.resolve([]);
+			}
+
+			// const root = folders[0].uri.fsPath;
+            // new TreeItem('conduit', vscode.TreeItemCollapsibleState.None, `${root}/conduit.go`, '.go')
+            // new TreeItem('Item 1', vscode.TreeItemCollapsibleState.Collapsed, '')
+
             console.log(targetUri);
             treeDataProvider.refresh();
         }
