@@ -33,7 +33,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
         this.root = this.getData();
         if (this.root) {
-            this.root.tree = new TreeItem('root', '', '');
+            this.root.tree = new TreeItem(null, 'root', '', '');
         }
     }
 
@@ -143,6 +143,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
             if (result) {
                 parent.add(new TreeItem(
+                    parent,
                     result,
                     '',
                     'filter'

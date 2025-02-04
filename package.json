@@ -26,6 +26,11 @@
         "command": "tree-view.newFilter",
         "title": "New Filter",
         "icon": "$(new-folder)"
+      },
+      {
+        "command": "tree-view.remove",
+        "title": "Remove",
+        "icon": "$(new-folder)"
       }
     ],
     "viewsContainers": {
@@ -68,6 +73,11 @@
         {
           "command": "tree-view.newFilter",
           "when": "view == tree-view && viewItem == filter",
+          "group": "1_modification"
+        },
+        {
+          "command": "tree-view.remove",
+          "when": "view == tree-view",
           "group": "1_modification"
         }
       ]

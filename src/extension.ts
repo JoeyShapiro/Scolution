@@ -45,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
             const name = path[path.length-1].split('.')[0];
 
             parent.add(new TreeItem(
+                parent, // TODO fix this
                 name,
                 file.fsPath,
                 'file',
@@ -62,12 +63,20 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider.refresh();
     });
 
+    let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (uri?: TreeItem) => {
+        const item = uri || lastFocusedElement;
+        if (!item) return;
+
+        item.remove();
+        treeDataProvider.refresh();
+    });
+
     // Hello World command
     let helloCommand = vscode.commands.registerCommand('scolution.helloWorld', () => {
         vscode.window.showInformationMessage('Hello from your first VS Code extension!');
     });
 
-    context.subscriptions.push(refreshCommand, newFileCommand, newFilterCommand, helloCommand);
+    context.subscriptions.push(refreshCommand, newFileCommand, newFilterCommand, removeCommand, helloCommand);
 }
 
 export function deactivate() {}
