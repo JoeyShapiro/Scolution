@@ -165,13 +165,13 @@ class TreeItem extends vscode.TreeItem {
 		fileType?: string,
     ) {
         super(label, collapsibleState);
-        this.tooltip = `${this.label}`; // Show label as tooltip
+        this.tooltip = `${path}`; // Show label as tooltip
 		this.path = path;
         this.contextValue = fileType ? 'file' : 'filter';
 
 		// this.iconPath = new vscode.ThemeIcon('python'); // Uses VS Code's built-in icons
 		if (fileType) {
-			this.resourceUri = vscode.Uri.parse(`file:///fake/path/file.${fileType}`);
+			this.resourceUri = vscode.Uri.parse(path);
 			this.command = {
 				command: 'vscode.open',
 				title: 'Open File',
@@ -204,21 +204,38 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider.refresh();
     });
 
-    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async (uri?: vscode.Uri) => {
-        const targetUri = uri || (vscode.workspace.workspaceFolders?.[0].uri);
-        if (targetUri) {
-            // await createNewFile(targetUri);
-            const folders = vscode.workspace.workspaceFolders
-			if (!folders) {
-				return Promise.resolve([]);
-			}
+    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async (uri?: TreeItem) => {
+        const parent = uri || lastFocusedElement || treeDataProvider.tree();
+        if (!parent) return;
 
-			// const root = folders[0].uri.fsPath;
-            // new TreeItem('conduit', vscode.TreeItemCollapsibleState.None, `${root}/conduit.go`, '.go')
-
-            console.log(targetUri);
-            treeDataProvider.refresh();
+        const folders = vscode.workspace.workspaceFolders
+        if (!folders) {
+            return Promise.resolve([]);
         }
+        console.warn('folders', folders); // TODO warn and error same color
+
+        const files = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: true,
+            defaultUri: folders[0].uri // always 1, always workspace. i think
+            // TODO force in workspace
+        });
+        if (!files) return;
+
+        for (const file of files) {
+            const path = file.path.split('/');
+            const name = path[path.length-1].split('.')[0];
+
+            parent.add(new TreeItem(
+                name,
+                vscode.TreeItemCollapsibleState.None,
+                file.fsPath,
+                'dummy'
+            ));
+        }
+
+        treeDataProvider.refresh();
     });
     
     // TODO need to be able to modify tree, then can try
