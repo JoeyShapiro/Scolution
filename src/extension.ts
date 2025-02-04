@@ -32,7 +32,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
         this.root = this.getData();
         if (this.root) {
-            this.root.tree = new TreeItem('root', vscode.TreeItemCollapsibleState.Collapsed, '');
+            this.root.tree = new TreeItem('root', '', '');
         }
     }
 
@@ -142,8 +142,8 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             if (result) {
                 parent.add(new TreeItem(
                     result,
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    ''
+                    '',
+                    'filter'
                 ));
             }
         } finally {
@@ -160,17 +160,18 @@ class TreeItem extends vscode.TreeItem {
 
     constructor(
         public readonly label: string,
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		path: string,
-		fileType?: string,
+		path: string, // TODO i think it either gets a path or filter
+        fileType: string, // 'file', filter
     ) {
+        const collapsibleState = fileType == 'filter' ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
+
         super(label, collapsibleState);
         this.tooltip = `${path}`; // Show label as tooltip
 		this.path = path;
-        this.contextValue = fileType ? 'file' : 'filter';
+        this.contextValue = fileType;
 
 		// this.iconPath = new vscode.ThemeIcon('python'); // Uses VS Code's built-in icons
-		if (fileType) {
+		if (fileType == 'file') {
 			this.resourceUri = vscode.Uri.parse(path);
 			this.command = {
 				command: 'vscode.open',
@@ -229,16 +230,14 @@ export function activate(context: vscode.ExtensionContext) {
 
             parent.add(new TreeItem(
                 name,
-                vscode.TreeItemCollapsibleState.None,
                 file.fsPath,
-                'dummy'
+                'file',
             ));
         }
 
         treeDataProvider.refresh();
     });
     
-    // TODO need to be able to modify tree, then can try
     let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async (uri?: TreeItem) => {
         const parent = uri || lastFocusedElement || treeDataProvider.tree();
         if (!parent) return;
