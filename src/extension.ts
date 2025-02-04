@@ -31,6 +31,9 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
 
         this.root = this.getData();
+        if (this.root) {
+            this.root.tree = new TreeItem('root', vscode.TreeItemCollapsibleState.Collapsed, '');
+        }
     }
 
     public getData<T>(): T | null {
@@ -101,6 +104,10 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
     }
 
+    tree(): TreeItem | undefined {
+        return this.root?.tree
+    }
+
     // Track the item being edited
     private editingItem?: { item: TreeItem; value: string };
 
@@ -113,17 +120,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         this._onDidChangeTreeData.fire(item);
     }
 
-    async startRename(element: TreeItem): Promise<void> {
-        this.setEditing(element);
-        
-        // Create a text editor decoration type for the inline input
-        const decoration = vscode.window.createTextEditorDecorationType({
-            after: {
-                contentText: 'Enter to confirm, Escape to cancel',
-                color: new vscode.ThemeColor('descriptionForeground')
-            }
-        });
-
+    async editFilter(parent: TreeItem): Promise<void> {
         // Handle keyboard input
         const disposable = vscode.workspace.onDidChangeTextDocument(async e => {
             if (this.editingItem && e.document.uri.toString() === this.editingItem.item.resourceUri?.toString()) {
@@ -133,42 +130,33 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         });
 
         try {
-            // Show the inline input box
-            const editor = await vscode.window.showTextDocument(element.resourceUri!, {
-                preview: false,
-                preserveFocus: true
-            });
-
-            // Apply the decoration
-            editor.setDecorations(decoration, [{
-                range: new vscode.Range(0, 0, 0, 0)
-            }]);
-
             // Handle the result
             const result = await vscode.window.showInputBox({
-                value: element.label,
-                valueSelection: [0, element.label.length],
+                value: '',
+                valueSelection: [0, 0],
                 validateInput: text => {
                     return text.includes('/') ? 'Name cannot contain /' : null;
                 }
             });
 
             if (result) {
-                const newPath = path.join(path.dirname(element.path!), result);
-                await vscode.workspace.fs.rename(element.resourceUri!, vscode.Uri.file(newPath), { overwrite: false });
+                parent.add(new TreeItem(
+                    result,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    ''
+                ));
             }
         } finally {
             // Clean up
             this.setEditing(undefined);
             disposable.dispose();
-            decoration.dispose();
         }
     }
 }
 
 class TreeItem extends vscode.TreeItem {
 	public path: string;
-    public branches?: TreeItem[];
+    public branches: TreeItem[] = [];
 
     constructor(
         public readonly label: string,
@@ -190,6 +178,10 @@ class TreeItem extends vscode.TreeItem {
 				arguments: [vscode.Uri.file(path)],
 			};
 		}
+    }
+
+    add(element: TreeItem) {
+        return this.branches.push(element);
     }
 }
 
@@ -223,7 +215,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// const root = folders[0].uri.fsPath;
             // new TreeItem('conduit', vscode.TreeItemCollapsibleState.None, `${root}/conduit.go`, '.go')
-            // new TreeItem('Item 1', vscode.TreeItemCollapsibleState.Collapsed, '')
 
             console.log(targetUri);
             treeDataProvider.refresh();
@@ -231,18 +222,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
     
     // TODO need to be able to modify tree, then can try
-    let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async (uri?: vscode.Uri) => {
-        const parentUri = lastFocusedElement;
-        if (!parentUri) return;
+    let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async (uri?: TreeItem) => {
+        const parent = uri || lastFocusedElement || treeDataProvider.tree();
+        if (!parent) return;
 
-        // Create a temporary TreeItem for the new folder
-        const tempItem = new TreeItem(
-            'New Folder',
-            vscode.TreeItemCollapsibleState.Collapsed,
-            ''
-        );
-
-        await treeDataProvider.startRename(tempItem);
+        await treeDataProvider.editFilter(parent);
         treeDataProvider.refresh();
     });
 
