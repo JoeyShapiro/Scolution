@@ -16,6 +16,16 @@
       {
         "command": "scolution.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "tree-view.newFile",
+        "title": "New File",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "tree-view.newFilter",
+        "title": "New Filter",
+        "icon": "$(new-folder)"
       }
     ],
     "viewsContainers": {
@@ -33,6 +43,32 @@
           "id": "tree-view",
           "name": "Tree View",
           "type": "tree"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "tree-view.newFile",
+          "when": "view == tree-view",
+          "group": "navigation"
+        },
+        {
+          "command": "tree-view.newFilter",
+          "when": "view == tree-view",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tree-view.newFile",
+          "when": "view == tree-view && viewItem == filter",
+          "group": "1_modification"
+        },
+        {
+          "command": "tree-view.newFilter",
+          "when": "view == tree-view && viewItem == filter",
+          "group": "1_modification"
         }
       ]
     }
