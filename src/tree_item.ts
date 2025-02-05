@@ -91,17 +91,114 @@ enum DecoColors {
 
 // define the decoration provider
 export class TreeItemDecorationProvider implements vscode.FileDecorationProvider {
-    provideFileDecoration(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FileDecoration> {
-        
-        if (uri.scheme === "scolution") {
-            console.log(uri)
+    private gitAPI: any = null;
+    private repositories: any[] = [];
+    private _onDidChangeFileDecorations = new vscode.EventEmitter<vscode.Uri | vscode.Uri[]>();
+
+    constructor() {
+        this.initializeGit();
+    }
+
+    // Initialize Git API and set up repositories
+    private async initializeGit() {
+        try {
+            const extension = vscode.extensions.getExtension('vscode.git');
+            if (extension) {
+                const gitExtension = await extension.activate();
+                this.gitAPI = gitExtension.getAPI(1);
+                this.repositories = this.gitAPI.repositories;
+
+                // Set up repository change listeners
+                this.gitAPI.onDidOpenRepository((repo: any) => {
+                    this.repositories.push(repo);
+                    this.setupRepositoryListeners(repo);
+                });
+
+                // Set up listeners for existing repositories
+                this.repositories.forEach(repo => this.setupRepositoryListeners(repo));
+            }
+        } catch (error) {
+            console.error('Failed to initialize Git API:', error);
+        }
+    }
+
+    // Set up repository state change listeners
+    private setupRepositoryListeners(repository: any) {
+        repository.state.onDidChange(() => {
+            // Notify that decorations need to be updated
+            this._onDidChangeFileDecorations.fire(vscode.Uri.parse(''));
+        });
+    }
+
+    // Required: Event handler for decoration changes
+    get onDidChangeFileDecorations(): vscode.Event<vscode.Uri | vscode.Uri[]> {
+        return this._onDidChangeFileDecorations.event;
+    }
+
+    // Required: Synchronous provider method
+    provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
+        if (uri.scheme !== "scolution") return;
+
+        // If Git API isn't initialized yet, return nothing
+        if (!this.gitAPI || !this.repositories.length) {
+            return undefined;
+        }
+
+        try {
+            // Find the repository that contains this file
+            const repo = this.repositories.find(repo => {
+                const repoRoot = repo.rootUri.fsPath;
+                return uri.fsPath.startsWith(repoRoot);
+            });
+
+            if (!repo) {
+                return undefined;
+            }
+
+            // Get the file's status from the repository state
+            const status = this.getFileStatus(repo, uri);
+            if (!status) {
+                return undefined;
+            }
+
             return {
                 color: new vscode.ThemeColor(DecoColors.modified),
                 badge: "M",
                 tooltip: "Modified"
             };
+        } catch (error) {
+            console.error('Error providing file decoration:', error);
+            return undefined;
+        }
+    }
+
+    // Helper method to get file status
+    private getFileStatus(repository: any, uri: vscode.Uri): string | undefined {
+        const relativePath = vscode.workspace.asRelativePath(uri);
+        
+        // Check working tree changes
+        const workingTreeChanges = repository.state.workingTreeChanges;
+        const workingTreeChange = workingTreeChanges.find((change: any) => 
+            change.uri.fsPath === uri.fsPath
+        );
+        if (workingTreeChange) {
+            return workingTreeChange.status;
+        }
+
+        // Check staged changes
+        const indexChanges = repository.state.indexChanges;
+        const indexChange = indexChanges.find((change: any) => 
+            change.uri.fsPath === uri.fsPath
+        );
+        if (indexChange) {
+            return indexChange.status;
         }
 
         return undefined;
+    }
+
+    // Clean up method
+    dispose() {
+        this._onDidChangeFileDecorations.dispose();
     }
 }
