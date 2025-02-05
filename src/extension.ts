@@ -44,8 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
             const path = file.path.split('/');
             const name = path[path.length-1].split('.')[0];
 
-            parent.add(new TreeItem(
-                parent, // TODO fix this
+            treeDataProvider.add(new TreeItem(
+                parent.uuid,
                 name,
                 file.fsPath,
                 'file',
@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
         const item = uri || lastFocusedElement;
         if (!item) return;
 
-        item.remove();
+        treeDataProvider.remove(item.uuid);
         treeDataProvider.refresh();
     });
 

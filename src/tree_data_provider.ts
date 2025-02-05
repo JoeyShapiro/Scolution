@@ -2,10 +2,18 @@ import path from 'path';
 import * as vscode from 'vscode';
 import fs from 'fs';
 import { TreeItem } from './tree_item'
+import { UUID } from 'crypto';
 
 class StorageData {
     readonly version: string = "1.0.0";
-    public tree?: TreeItem;
+    public tree: { [key: UUID]: TreeItem } = {};
+    public root: UUID; // better than indexing somehow, and maybe doesnt work
+
+    constructor() {
+        const root = new TreeItem(null, 'root', '', ''); // only need to create the root here
+        this.tree[root.uuid] = root;
+        this.root = root.uuid;
+    }
 }
 
 export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
@@ -13,7 +21,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private storagePath: string | undefined;
     private readonly filename: string = 'scolution.json';
-    private root?: StorageData | null;
+    private root: StorageData = this.getData() || new StorageData();
 
     constructor() {
         const workspaceRoot = vscode.workspace.workspaceFolders;
@@ -30,11 +38,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         if (!fs.existsSync(this.storagePath)) {
             this.saveData(new StorageData());
         }
-
-        this.root = this.getData();
-        if (this.root) {
-            this.root.tree = new TreeItem(null, 'root', '', '');
-        }
     }
 
     public getData<T>(): T | null {
@@ -44,8 +47,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             }
 
             const rawData = fs.readFileSync(this.storagePath, 'utf8');
-            return JSON.parse(rawData); // TODO convert to type
-        } catch (error) {
+            return JSON.parse(rawData);
+        } catch (error) { // TODO should exist because we do a save first
             console.error('Error reading workspace data:', error);
             return null;
         }
@@ -96,10 +99,12 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
         if (element) {
-            return Promise.resolve(element.branches || []);
+            const branches = Object.values(this.root.tree).filter(value => value.parent_id === element.uuid);
+            return Promise.resolve(branches);
         } else {
             if (this.root) {
-                return Promise.resolve(this.root.tree?.branches || []);
+                const branches = Object.values(this.root.tree).filter(value => value.parent_id === this.root.root);
+                return Promise.resolve(branches);
             } else {
                 return Promise.resolve([]);
             }
@@ -107,7 +112,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     tree(): TreeItem | undefined {
-        return this.root?.tree
+        return this.root.tree[this.root.root];
     }
 
     // Track the item being edited
@@ -142,8 +147,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             });
 
             if (result) {
-                parent.add(new TreeItem(
-                    parent,
+                this.add(new TreeItem(
+                    parent.uuid,
                     result,
                     '',
                     'filter'
@@ -154,5 +159,14 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             this.setEditing(undefined);
             disposable.dispose();
         }
+    }
+
+    add(element: TreeItem) {
+        this.root.tree[element.uuid] = element;
+        this.refresh();
+    }
+
+    remove(uuid: UUID) {
+        delete this.root.tree[uuid];
     }
 }
