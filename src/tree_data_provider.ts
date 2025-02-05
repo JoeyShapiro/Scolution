@@ -21,7 +21,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private storagePath: string | undefined;
     private readonly filename: string = 'scolution.json';
-    private root: StorageData = this.getData() || new StorageData();
+    private root: StorageData = new StorageData();
 
     constructor() {
         const workspaceRoot = vscode.workspace.workspaceFolders;
@@ -34,9 +34,11 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             fs.mkdirSync(vscodePath);
         }
 
+        this.root = this.getData() || new StorageData();
+
         // Create storage file if it doesn't exist
         if (!fs.existsSync(this.storagePath)) {
-            this.saveData(new StorageData());
+            this.saveData(this.root);
         }
     }
 
@@ -100,6 +102,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
         if (element) {
             const branches = Object.values(this.root.tree).filter(value => value.parent_id === element.uuid);
+            console.log(branches);
             return Promise.resolve(branches);
         } else {
             if (this.root) {
@@ -159,6 +162,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             this.setEditing(undefined);
             disposable.dispose();
         }
+
+        this.refresh();
     }
 
     add(element: TreeItem) {
@@ -168,5 +173,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     remove(uuid: UUID) {
         delete this.root.tree[uuid];
+        this.refresh();
     }
 }

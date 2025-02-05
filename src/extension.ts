@@ -60,7 +60,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (!parent) return;
 
         await treeDataProvider.editFilter(parent);
-        treeDataProvider.refresh();
     });
 
     let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (uri?: TreeItem) => {
@@ -68,7 +67,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (!item) return;
 
         treeDataProvider.remove(item.uuid);
-        treeDataProvider.refresh();
     });
 
     // Hello World command
