@@ -9,12 +9,13 @@ Solution Viewer similiar to Visual Studio or XCode
 **Enjoy!**
 
 ## TODO
-- [-] add files
+- [ ] add files
 - [x] delete files
 - [x] add existing
 - [x] .vscode
 - [x] store whole tree as paths
 - [x] filters not folders, but use same icons
-- [-] icon
+- [x] icon
 - [ ] git support
 - [ ] files with same name
+- [ ] store isExpanded

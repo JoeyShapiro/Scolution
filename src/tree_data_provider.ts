@@ -103,17 +103,11 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
-        if (element) {
-            const branches = Object.values(this.root.tree).filter(value => value.parent_id === element.uuid);
-            return Promise.resolve(branches);
-        } else {
-            if (this.root) {
-                const branches = Object.values(this.root.tree).filter(value => value.parent_id === this.root.root);
-                return Promise.resolve(branches);
-            } else {
-                return Promise.resolve([]);
-            }
-        }
+        // get children of current element, or root
+        const uuid = element?.uuid || this.root.root
+        return Promise.resolve(
+            Object.values(this.root.tree).filter(value => value.parent_id === uuid)
+        )
     }
 
     tree(): TreeItem | undefined {

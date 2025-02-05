@@ -23,10 +23,8 @@ export class TreeItem extends vscode.TreeItem {
         this.parent_id = parent_id;
         this.fileType = fileType;
 
-        // this.iconPath = new vscode.ThemeIcon('python'); // Uses VS Code's built-in icons
-        // TODO handle theme for folders
+        this.resourceUri = vscode.Uri.parse(path);
         if (fileType == 'file') {
-            this.resourceUri = vscode.Uri.parse(path);
             this.command = {
                 command: 'vscode.open',
                 title: 'Open File',
@@ -59,7 +57,8 @@ export class TreeItem extends vscode.TreeItem {
             data.label === undefined ||
             data.path === undefined ||
             data.fileType === undefined ||
-            data.uuid === undefined
+            data.uuid === undefined ||
+            data.state === undefined
         ) {
             console.error('failed to parse any:', data);
         }
