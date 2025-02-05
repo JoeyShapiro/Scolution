@@ -24,6 +24,7 @@ export class TreeItem extends vscode.TreeItem {
         this.fileType = fileType;
 
         // this.iconPath = new vscode.ThemeIcon('python'); // Uses VS Code's built-in icons
+        // TODO handle theme for folders
         if (fileType == 'file') {
             this.resourceUri = vscode.Uri.parse(path);
             this.command = {

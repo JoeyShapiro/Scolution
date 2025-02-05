@@ -6,8 +6,8 @@ import { UUID } from 'crypto';
 
 class StorageData {
     readonly version: string = "1.0.0";
-    public tree: { [key: UUID]: TreeItem } = {};
     public root: UUID; // better than indexing somehow, and maybe doesnt work
+    public tree: { [key: UUID]: TreeItem } = {};
 
     constructor() {
         const root = new TreeItem(null, 'root', '', ''); // only need to create the root here
@@ -41,10 +41,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             this.root.tree[key as UUID] = TreeItem.fromAny(data);
         }
 
-        // Create storage file if it doesn't exist
-        if (!fs.existsSync(this.storagePath)) {
-            this.saveData(this.root);
-        }
+        // save whatever we have
+        this.saveData(this.root);
     }
 
     public getData<T>(): T | null {
@@ -157,7 +155,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
                 this.add(new TreeItem(
                     parent.uuid,
                     result,
-                    '',
+                    result,
                     'filter'
                 ));
             }
