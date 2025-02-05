@@ -162,6 +162,12 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         this.refresh();
     }
 
+    state(uuid: UUID, state: vscode.TreeItemCollapsibleState) {
+        this.root.tree[uuid].state = state;
+        console.log(uuid, state);
+        this.refresh();
+    }
+
     add(element: TreeItem) {
         this.root.tree[element.uuid] = element;
         this.refresh();

@@ -14,6 +14,14 @@ export function activate(context: vscode.ExtensionContext) {
         lastFocusedElement = e.selection.length > 0 ? e.selection[0] : undefined;
     });
 
+    // handle opening and closing of filters
+    treeView.onDidCollapseElement(e => {
+        treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Collapsed);
+    });
+    treeView.onDidExpandElement(e => {
+        treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Expanded);
+    });
+
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {
         treeDataProvider.refresh();

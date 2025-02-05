@@ -6,6 +6,7 @@ export class TreeItem extends vscode.TreeItem {
     public parent_id?: UUID | null;
     public uuid: UUID = randomUUID(); // cant use id because its special
     public fileType: string;
+    public state: vscode.TreeItemCollapsibleState
 
     constructor(
         parent_id: UUID | null,
@@ -22,6 +23,7 @@ export class TreeItem extends vscode.TreeItem {
 
         this.parent_id = parent_id;
         this.fileType = fileType;
+        this.state = collapsibleState
 
         this.resourceUri = vscode.Uri.parse(path);
         if (fileType == 'file') {
@@ -40,6 +42,7 @@ export class TreeItem extends vscode.TreeItem {
             uuid: this.uuid,
             fileType: this.fileType,
             label: this.label,
+            state: this.state,
         }
     }
 
@@ -48,6 +51,7 @@ export class TreeItem extends vscode.TreeItem {
         let item = new TreeItem(data.parent_id, data.label, data.path, data.fileType);
 
         item.uuid = data.uuid;
+        item.state = data.state;
 
         return item;
     }
@@ -66,6 +70,7 @@ export class TreeItem extends vscode.TreeItem {
         let item = new TreeItem(data.parent_id, data.label, data.path, data.fileType);
 
         item.uuid = data.uuid;
+        item.collapsibleState = data.state;
 
         return item;
     }
