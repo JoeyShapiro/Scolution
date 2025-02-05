@@ -9,7 +9,6 @@ Solution Viewer similiar to Visual Studio or XCode
 **Enjoy!**
 
 ## TODO
-- [ ] add files
 - [x] delete files
 - [x] add existing
 - [x] .vscode
@@ -18,4 +17,6 @@ Solution Viewer similiar to Visual Studio or XCode
 - [x] icon
 - [ ] git support
 - [ ] files with same name
-- [ ] store isExpanded
+- [x] store isExpanded
+- [ ] save on shutdown
+- [ ] inline input for filters

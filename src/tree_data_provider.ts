@@ -42,7 +42,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
 
         // save whatever we have
-        this.saveData(this.root);
+        this.save();
     }
 
     public getData<T>(): T | null {
@@ -59,13 +59,13 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
     }
 
-    public saveData(data: StorageData): boolean {
+    public save(): boolean {
         try {
             if (!this.storagePath) {
                 return false;
             }
 
-            fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2));
+            fs.writeFileSync(this.storagePath, JSON.stringify(this.root, null, 2));
             return true;
         } catch (error) {
             console.error('Error saving workspace data:', error);
@@ -95,7 +95,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
-        this.saveData(this.root!);
+        this.save();
     }
 
     getTreeItem(element: TreeItem): vscode.TreeItem {
@@ -164,7 +164,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     state(uuid: UUID, state: vscode.TreeItemCollapsibleState) {
         this.root.tree[uuid].state = state;
-        console.log(uuid, state);
         this.refresh();
     }
 

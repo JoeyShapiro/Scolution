@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         const folders = vscode.workspace.workspaceFolders
         if (!folders) {
-            return Promise.resolve([]);
+            return;
         }
 
         const files = await vscode.window.showOpenDialog({

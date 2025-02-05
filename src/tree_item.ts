@@ -70,7 +70,8 @@ export class TreeItem extends vscode.TreeItem {
         let item = new TreeItem(data.parent_id, data.label, data.path, data.fileType);
 
         item.uuid = data.uuid;
-        item.collapsibleState = data.state;
+        item.state = data.state;
+        item.collapsibleState = item.state;
 
         return item;
     }
