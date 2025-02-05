@@ -36,6 +36,11 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
         this.root = this.getData() || new StorageData();
 
+        // clean tree
+        for (const [key, data] of Object.entries(this.root.tree)) {
+            this.root.tree[key as UUID] = TreeItem.fromAny(data);
+        }
+
         // Create storage file if it doesn't exist
         if (!fs.existsSync(this.storagePath)) {
             this.saveData(this.root);
@@ -102,7 +107,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
         if (element) {
             const branches = Object.values(this.root.tree).filter(value => value.parent_id === element.uuid);
-            console.log(branches);
             return Promise.resolve(branches);
         } else {
             if (this.root) {

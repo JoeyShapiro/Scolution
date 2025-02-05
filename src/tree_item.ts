@@ -5,6 +5,7 @@ export class TreeItem extends vscode.TreeItem {
     public path: string;
     public parent_id?: UUID | null;
     public uuid: UUID = randomUUID(); // cant use id because its special
+    public fileType: string;
 
     constructor(
         parent_id: UUID | null,
@@ -20,6 +21,7 @@ export class TreeItem extends vscode.TreeItem {
         this.contextValue = fileType;
 
         this.parent_id = parent_id;
+        this.fileType = fileType;
 
         // this.iconPath = new vscode.ThemeIcon('python'); // Uses VS Code's built-in icons
         if (fileType == 'file') {
@@ -30,5 +32,41 @@ export class TreeItem extends vscode.TreeItem {
                 arguments: [vscode.Uri.file(path)],
             };
         }
+    }
+
+    toJSON() {
+        return {
+            path: this.path,
+            parent_id: this.parent_id,
+            uuid: this.uuid,
+            fileType: this.fileType,
+            label: this.label,
+        }
+    }
+
+    static fromJSON(json: string): TreeItem {
+        const data = JSON.parse(json);
+        let item = new TreeItem(data.parent_id, data.label, data.path, data.fileType);
+
+        item.uuid = data.uuid;
+
+        return item;
+    }
+
+    static fromAny(data: any): TreeItem {
+        if (data.parent_id === undefined ||
+            data.label === undefined ||
+            data.path === undefined ||
+            data.fileType === undefined ||
+            data.uuid === undefined
+        ) {
+            console.error('failed to parse any:', data);
+        }
+
+        let item = new TreeItem(data.parent_id, data.label, data.path, data.fileType);
+
+        item.uuid = data.uuid;
+
+        return item;
     }
 }
