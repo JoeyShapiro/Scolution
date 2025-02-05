@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { TreeDataProvider } from './tree_data_provider'
-import { TreeItem } from './tree_item'
+import { TreeItem, TreeItemDecorationProvider } from './tree_item'
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "scolution" is now active!');
@@ -78,6 +78,9 @@ export function activate(context: vscode.ExtensionContext) {
     let helloCommand = vscode.commands.registerCommand('scolution.helloWorld', () => {
         vscode.window.showInformationMessage('Hello from your first VS Code extension!');
     });
+
+    // register the decoration provider
+    vscode.window.registerFileDecorationProvider(new TreeItemDecorationProvider())
 
     context.subscriptions.push(refreshCommand, newFileCommand, newFilterCommand, removeCommand, helloCommand);
 }

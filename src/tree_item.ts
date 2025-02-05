@@ -25,7 +25,7 @@ export class TreeItem extends vscode.TreeItem {
         this.fileType = fileType;
         this.state = collapsibleState
 
-        this.resourceUri = vscode.Uri.parse(path);
+        this.resourceUri = vscode.Uri.parse(`scolution:/${path}`);
         if (fileType == 'file') {
             this.command = {
                 command: 'vscode.open',
@@ -74,5 +74,34 @@ export class TreeItem extends vscode.TreeItem {
         item.collapsibleState = item.state;
 
         return item;
+    }
+}
+
+enum DecoColors {
+    // Basic UI colors
+    foreground = 'foreground',
+    errorForeground = 'errorForeground',
+    descriptionForeground = 'descriptionForeground',
+    
+    // Git colors (useful for status indicators)
+    modified = 'gitDecoration.modifiedResourceForeground',
+    conflicting = 'gitDecoration.conflictingResourceForeground',
+    staged = 'gitDecoration.stageModifiedResourceForeground'
+}
+
+// define the decoration provider
+export class TreeItemDecorationProvider implements vscode.FileDecorationProvider {
+    provideFileDecoration(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FileDecoration> {
+        
+        if (uri.scheme === "scolution") {
+            console.log(uri)
+            return {
+                color: new vscode.ThemeColor(DecoColors.modified),
+                badge: "M",
+                tooltip: "Modified"
+            };
+        }
+
+        return undefined;
     }
 }
