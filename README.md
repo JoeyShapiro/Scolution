@@ -17,3 +17,4 @@ Solution Viewer similiar to Visual Studio or XCode
 - [x] filters not folders, but use same icons
 - [-] icon
 - [ ] git support
+- [ ] files with same name

@@ -11,9 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let lastFocusedElement: TreeItem | undefined;
     treeView.onDidChangeSelection(e => {
-        if (e.selection.length > 0) {
-            lastFocusedElement = e.selection[0];
-        }
+        lastFocusedElement = e.selection.length > 0 ? e.selection[0] : undefined;
     });
 
     // Command to refresh the tree view
@@ -21,15 +19,14 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider.refresh();
     });
 
-    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async (uri?: TreeItem) => {
-        const parent = uri || lastFocusedElement || treeDataProvider.tree();
+    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async (_uri?: TreeItem) => {
+        const parent = lastFocusedElement || treeDataProvider.tree();
         if (!parent) return;
 
         const folders = vscode.workspace.workspaceFolders
         if (!folders) {
             return Promise.resolve([]);
         }
-        console.warn('folders', folders); // TODO warn and error same color
 
         const files = await vscode.window.showOpenDialog({
             canSelectFiles: true,
