@@ -92,7 +92,13 @@ enum DecoColors {
     // Git colors (useful for status indicators)
     modified = 'gitDecoration.modifiedResourceForeground',
     conflicting = 'gitDecoration.conflictingResourceForeground',
-    staged = 'gitDecoration.stageModifiedResourceForeground'
+    staged = 'gitDecoration.stageModifiedResourceForeground',
+    added = 'gitDecoration.addedResourceForeground',
+    deleted = 'gitDecoration.deletedResourceForeground',
+    untracked = 'gitDecoration.untrackedResourceForeground',
+    ignored = 'gitDecoration.ignoredResourceForeground',
+    renamed = 'gitDecoration.renamedResourceForeground',
+    submodule = 'gitDecoration.submoduleResourceForeground'
 }
 
 export interface Change {
@@ -113,6 +119,59 @@ export enum Status {
     UNTRACKED,
     IGNORED,
     INTENT_TO_ADD
+}
+
+const StatusDecorator: { [key in Status]: any } = {
+    [Status.INDEX_MODIFIED]: {
+        color: new vscode.ThemeColor(DecoColors.staged),
+        badge: "M",
+        tooltip: "Modified"
+    },
+    [Status.INDEX_ADDED]: {
+        color: new vscode.ThemeColor(DecoColors.staged),
+        badge: "A",
+        tooltip: "Added"
+    },
+    [Status.INDEX_DELETED]: {
+        color: new vscode.ThemeColor(DecoColors.staged),
+        badge: "D",
+        tooltip: "Deleted"
+    },
+    [Status.INDEX_RENAMED]: {
+        color: new vscode.ThemeColor(DecoColors.staged),
+        badge: "R",
+        tooltip: "Renamed"
+    },
+    [Status.INDEX_COPIED]: {
+        color: new vscode.ThemeColor(DecoColors.staged),
+        badge: "C",
+        tooltip: "Copied"
+    },
+    [Status.MODIFIED]: {
+        color: new vscode.ThemeColor(DecoColors.modified),
+        badge: "M",
+        tooltip: "Modified"
+    },
+    [Status.DELETED]: {
+        color: new vscode.ThemeColor(DecoColors.deleted),
+        badge: "D",
+        tooltip: "Deleted"
+    },
+    [Status.UNTRACKED]: {
+        color: new vscode.ThemeColor(DecoColors.untracked),
+        badge: "U",
+        tooltip: "Untracked"
+    },
+    [Status.IGNORED]: {
+        color: new vscode.ThemeColor(DecoColors.ignored),
+        badge: "I",
+        tooltip: "Ignored"
+    },
+    [Status.INTENT_TO_ADD]: {
+        color: new vscode.ThemeColor(DecoColors.added),
+        badge: "?",
+        tooltip: "Intent to Add"
+    },
 }
 
 // define the decoration provider
@@ -202,11 +261,7 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
                 return undefined;
             }
 
-            return {
-                color: new vscode.ThemeColor(DecoColors.modified),
-                badge: "M",
-                tooltip: "Modified"
-            };
+            return StatusDecorator[status];
         } catch (error) {
             console.error('Error providing file decoration:', error);
             return undefined;
