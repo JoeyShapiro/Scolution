@@ -38,7 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         for (const file of files) {
             const path = file.path.split('/');
-            const name = path[path.length-1].split('.')[0];
+            const basename = path[path.length-1].split('.');
+            const name = basename[0] || path[path.length-1]
 
             treeDataProvider.add(new TreeItem(
                 parent.uuid,
@@ -71,7 +72,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         for (const file of files) {
             const path = file.path.split('/');
-            const name = path[path.length-1].split('.')[0];
+            const basename = path[path.length-1].split('.');
+            const name = basename[0] || path[path.length-1]
 
             treeDataProvider.add(new TreeItem(
                 parent.uuid,

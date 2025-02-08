@@ -15,7 +15,7 @@ Solution Viewer similiar to Visual Studio or XCode
 - [x] store whole tree as paths
 - [x] filters not folders, but use same icons
 - [x] icon
-- [ ] git support
+- [x] git support
 - [ ] files with same name
 - [x] store isExpanded
 - [ ] save on shutdown
@@ -33,3 +33,8 @@ Solution Viewer similiar to Visual Studio or XCode
 - [ ] change provideFileDecoration to be faster by parsing file
   - [ ] only provide needed files
   - [ ] handle unwrapping better
+- [x] hidden files
+- [ ] settings
+  - [ ] show extensions
+  - [ ] hide hidden files
+  - [ ] disable git
