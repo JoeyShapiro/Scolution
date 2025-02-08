@@ -38,3 +38,4 @@ Solution Viewer similiar to Visual Studio or XCode
   - [ ] show extensions
   - [ ] hide hidden files
   - [ ] disable git
+- [ ] force files in workspace

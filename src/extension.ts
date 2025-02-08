@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TreeDataProvider } from './tree_data_provider'
-import { TreeItem, TreeItemDecorationProvider } from './tree_item'
+import { TreeItem } from './tree_item'
+import { TreeItemDecorationProvider } from './decoration_provider'
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "scolution" is now active!');
@@ -13,77 +14,49 @@ export function activate(context: vscode.ExtensionContext) {
         return treeDataProvider.contains(uri);
     });
 
+    const newFile = async (item?: TreeItem) => {
+        if (!item) return;
+
+        const folders = vscode.workspace.workspaceFolders
+        if (!folders) {
+            return;
+        }
+
+        const files = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: true,
+            defaultUri: folders[0].uri // always 1, always workspace. i think
+        });
+        if (!files) return;
+
+        for (const file of files) {
+            const path = file.path.split('/');
+            const basename = path[path.length-1].split('.');
+            const name = basename[0] || path[path.length-1]
+
+            treeDataProvider.add(new TreeItem(
+                item.uuid,
+                name,
+                file.fsPath,
+                'file',
+            ));
+        }
+
+        treeDataProvider.refresh();
+    }
+
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {
         treeDataProvider.refresh();
     });
 
     let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async () => {
-        const parent = treeDataProvider.tree();
-        if (!parent) return;
-
-        const folders = vscode.workspace.workspaceFolders
-        if (!folders) {
-            return;
-        }
-
-        const files = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: true,
-            defaultUri: folders[0].uri // always 1, always workspace. i think
-            // TODO force in workspace
-        });
-        if (!files) return;
-
-        for (const file of files) {
-            const path = file.path.split('/');
-            const basename = path[path.length-1].split('.');
-            const name = basename[0] || path[path.length-1]
-
-            treeDataProvider.add(new TreeItem(
-                parent.uuid,
-                name,
-                file.fsPath,
-                'file',
-            ));
-        }
-
-        treeDataProvider.refresh();
+        newFile(treeDataProvider.tree());
     });
 
-    let contextNewFileCommand = vscode.commands.registerCommand('tree-view.context.newFile', async (uri?: TreeItem) => {
-        const parent = uri || treeDataProvider.tree();
-        if (!parent) return;
-
-        const folders = vscode.workspace.workspaceFolders
-        if (!folders) {
-            return;
-        }
-
-        const files = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: true,
-            defaultUri: folders[0].uri // always 1, always workspace. i think
-            // TODO force in workspace
-        });
-        if (!files) return;
-
-        for (const file of files) {
-            const path = file.path.split('/');
-            const basename = path[path.length-1].split('.');
-            const name = basename[0] || path[path.length-1]
-
-            treeDataProvider.add(new TreeItem(
-                parent.uuid,
-                name,
-                file.fsPath,
-                'file',
-            ));
-        }
-
-        treeDataProvider.refresh();
+    let contextNewFileCommand = vscode.commands.registerCommand('tree-view.context.newFile', async (item?: TreeItem) => {
+        newFile(item || treeDataProvider.tree());
     });
     
     let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async () => {
@@ -93,15 +66,14 @@ export function activate(context: vscode.ExtensionContext) {
         await treeDataProvider.editFilter(parent);
     });
 
-    let contextNewFilterCommand = vscode.commands.registerCommand('tree-view.context.newFilter', async (uri?: TreeItem) => {
-        const parent = uri || treeDataProvider.tree();
+    let contextNewFilterCommand = vscode.commands.registerCommand('tree-view.context.newFilter', async (item?: TreeItem) => {
+        const parent = item || treeDataProvider.tree();
         if (!parent) return;
 
         await treeDataProvider.editFilter(parent);
     });
 
-    let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (uri?: TreeItem) => {
-        const item = uri;
+    let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (item?: TreeItem) => {
         if (!item) return;
 
         treeDataProvider.remove(item.uuid);
