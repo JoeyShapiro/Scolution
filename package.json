@@ -20,21 +20,21 @@
       },
       {
         "command": "tree-view.newFile",
-        "title": "New File",
+        "title": "Add File to Root",
         "icon": "$(new-file)"
       },
       {
         "command": "tree-view.newFilter",
-        "title": "New Filter",
+        "title": "Add Filter to root",
         "icon": "$(new-folder)"
       },
       {
         "command": "tree-view.context.newFile",
-        "title": "New File"
+        "title": "Add File"
       },
       {
         "command": "tree-view.context.newFilter",
-        "title": "New Filter"
+        "title": "Add Filter"
       },
       {
         "command": "tree-view.remove",

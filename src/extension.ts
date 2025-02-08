@@ -9,22 +9,6 @@ export function activate(context: vscode.ExtensionContext) {
     const treeDataProvider = new TreeDataProvider();
     const treeView = vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
 
-    let lastFocusedElement: TreeItem | undefined;
-    treeView.onDidChangeSelection(e => { // TODO only returns list if element has command
-        lastFocusedElement = e.selection.length > 0 ? e.selection[0] : undefined;
-        // console.warn() // TODO same color as error
-    });
-
-    // handle opening and closing of filters
-    treeView.onDidCollapseElement(e => {
-        treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Collapsed);
-        lastFocusedElement = treeDataProvider.element(e.element.parent_id);
-    });
-    treeView.onDidExpandElement(e => {
-        treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Expanded);
-        lastFocusedElement = e.element;
-    });
-
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {
         treeDataProvider.refresh();
@@ -111,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (uri?: TreeItem) => {
-        const item = uri || lastFocusedElement;
+        const item = uri;
         if (!item) return;
 
         treeDataProvider.remove(item.uuid);
