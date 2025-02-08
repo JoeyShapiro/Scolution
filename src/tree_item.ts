@@ -32,6 +32,12 @@ export class TreeItem extends vscode.TreeItem {
                 title: 'Open File',
                 arguments: [vscode.Uri.file(path)],
             };
+        } else {
+            this.command = {
+                command: 'scolution.state',
+                title: 'State',
+                arguments: [vscode.Uri.file(path)],
+            };
         }
     }
 

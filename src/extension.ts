@@ -10,16 +10,19 @@ export function activate(context: vscode.ExtensionContext) {
     const treeView = vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
 
     let lastFocusedElement: TreeItem | undefined;
-    treeView.onDidChangeSelection(e => {
+    treeView.onDidChangeSelection(e => { // TODO only returns list if element has command
         lastFocusedElement = e.selection.length > 0 ? e.selection[0] : undefined;
+        // console.warn() // TODO same color as error
     });
 
     // handle opening and closing of filters
     treeView.onDidCollapseElement(e => {
         treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Collapsed);
+        lastFocusedElement = treeDataProvider.element(e.element.parent_id);
     });
     treeView.onDidExpandElement(e => {
         treeDataProvider.state(e.element.uuid, vscode.TreeItemCollapsibleState.Expanded);
+        lastFocusedElement = e.element;
     });
 
     // Command to refresh the tree view
@@ -27,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider.refresh();
     });
 
-    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async (_uri?: TreeItem) => {
+    let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async () => {
         const parent = lastFocusedElement || treeDataProvider.tree();
         if (!parent) return;
 
@@ -59,9 +62,49 @@ export function activate(context: vscode.ExtensionContext) {
 
         treeDataProvider.refresh();
     });
+
+    let contextNewFileCommand = vscode.commands.registerCommand('tree-view.context.newFile', async (uri?: TreeItem) => {
+        const parent = uri || treeDataProvider.tree();
+        if (!parent) return;
+
+        const folders = vscode.workspace.workspaceFolders
+        if (!folders) {
+            return;
+        }
+
+        const files = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: true,
+            defaultUri: folders[0].uri // always 1, always workspace. i think
+            // TODO force in workspace
+        });
+        if (!files) return;
+
+        for (const file of files) {
+            const path = file.path.split('/');
+            const name = path[path.length-1].split('.')[0];
+
+            treeDataProvider.add(new TreeItem(
+                parent.uuid,
+                name,
+                file.fsPath,
+                'file',
+            ));
+        }
+
+        treeDataProvider.refresh();
+    });
     
-    let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async (uri?: TreeItem) => {
-        const parent = uri || lastFocusedElement || treeDataProvider.tree();
+    let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async () => {
+        const parent = lastFocusedElement || treeDataProvider.tree();
+        if (!parent) return;
+
+        await treeDataProvider.editFilter(parent);
+    });
+
+    let contextNewFilterCommand = vscode.commands.registerCommand('tree-view.context.newFilter', async (uri?: TreeItem) => {
+        const parent = uri || treeDataProvider.tree();
         if (!parent) return;
 
         await treeDataProvider.editFilter(parent);
@@ -74,6 +117,10 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider.remove(item.uuid);
     });
 
+    let dummyCommand = vscode.commands.registerCommand('scolution.state', (item?: TreeItem) => {
+        if (!item) return;
+    });
+
     // Hello World command
     let helloCommand = vscode.commands.registerCommand('scolution.helloWorld', () => {
         vscode.window.showInformationMessage('Hello from your first VS Code extension!');
@@ -82,7 +129,10 @@ export function activate(context: vscode.ExtensionContext) {
     // register the decoration provider
     vscode.window.registerFileDecorationProvider(new TreeItemDecorationProvider())
 
-    context.subscriptions.push(refreshCommand, newFileCommand, newFilterCommand, removeCommand, helloCommand);
+    context.subscriptions.push(refreshCommand,
+        newFileCommand, newFilterCommand, contextNewFileCommand, contextNewFilterCommand, removeCommand, dummyCommand,
+        helloCommand
+    );
 }
 
 export function deactivate() {}

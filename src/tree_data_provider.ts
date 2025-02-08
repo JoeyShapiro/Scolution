@@ -47,7 +47,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     public getData<T>(): T | null {
         try {
-            if (!this.storagePath) {
+            if (!this.storagePath || !fs.existsSync(this.storagePath)) {
                 return null;
             }
 
@@ -170,6 +170,12 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     add(element: TreeItem) {
         this.root.tree[element.uuid] = element;
         this.refresh();
+    }
+
+    element(uuid?: UUID | null): TreeItem {
+        if (!uuid) return this.root.tree[this.root.root];
+
+        return this.root.tree[uuid]
     }
 
     remove(uuid: UUID) {

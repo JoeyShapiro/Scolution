@@ -20,3 +20,11 @@ Solution Viewer similiar to Visual Studio or XCode
 - [x] store isExpanded
 - [ ] save on shutdown
 - [ ] inline input for filters
+- [ ] remove dummy or workaround (i swear it worked before)
+  - need uri and onchange
+  -  need separate commands
+  - uri works fine except for root. onchange works fine except for items with no command
+    - convulted but makes sense
+  - [ ] make arrows change current
+    - [ ] expand with arrow
+    - [ ] go to root

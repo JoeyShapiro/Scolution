@@ -29,9 +29,21 @@
         "icon": "$(new-folder)"
       },
       {
+        "command": "tree-view.context.newFile",
+        "title": "New File"
+      },
+      {
+        "command": "tree-view.context.newFilter",
+        "title": "New Filter"
+      },
+      {
         "command": "tree-view.remove",
         "title": "Remove",
         "icon": "$(new-folder)"
+      },
+      {
+        "command": "scolution.state",
+        "title": "State"
       }
     ],
     "viewsContainers": {
@@ -67,13 +79,13 @@
       ],
       "view/item/context": [
         {
-          "command": "tree-view.newFile",
-          "when": "view == tree-view && viewItem == filter",
+          "command": "tree-view.context.newFile",
+          "when": "view == tree-view && viewItem != file",
           "group": "1_modification"
         },
         {
-          "command": "tree-view.newFilter",
-          "when": "view == tree-view && viewItem == filter",
+          "command": "tree-view.context.newFilter",
+          "when": "view == tree-view && viewItem != file",
           "group": "1_modification"
         },
         {
