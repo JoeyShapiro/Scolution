@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async () => {
-        const parent = lastFocusedElement || treeDataProvider.tree();
+        const parent = treeDataProvider.tree();
         if (!parent) return;
 
         const folders = vscode.workspace.workspaceFolders
@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     
     let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async () => {
-        const parent = lastFocusedElement || treeDataProvider.tree();
+        const parent = treeDataProvider.tree();
         if (!parent) return;
 
         await treeDataProvider.editFilter(parent);
