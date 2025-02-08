@@ -9,7 +9,9 @@ export function activate(context: vscode.ExtensionContext) {
     const treeDataProvider = new TreeDataProvider();
     const treeView = vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
 
-    const deco = new TreeItemDecorationProvider();
+    const deco = new TreeItemDecorationProvider((uri: vscode.Uri) => {
+        return treeDataProvider.contains(uri);
+    });
 
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {

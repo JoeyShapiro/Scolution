@@ -31,3 +31,5 @@ Solution Viewer similiar to Visual Studio or XCode
 - [ ] welcome page
 - [ ] add .file on welcome
 - [ ] change provideFileDecoration to be faster by parsing file
+  - [ ] only provide needed files
+  - [ ] handle unwrapping better

@@ -95,14 +95,36 @@ enum DecoColors {
     staged = 'gitDecoration.stageModifiedResourceForeground'
 }
 
+export interface Change {
+    readonly uri: vscode.Uri;
+    readonly originalUri: vscode.Uri;
+    readonly renameUri?: vscode.Uri;
+    readonly status: Status;
+}
+
+export enum Status {
+    INDEX_MODIFIED,
+    INDEX_ADDED,
+    INDEX_DELETED,
+    INDEX_RENAMED,
+    INDEX_COPIED,
+    MODIFIED,
+    DELETED,
+    UNTRACKED,
+    IGNORED,
+    INTENT_TO_ADD
+}
+
 // define the decoration provider
 export class TreeItemDecorationProvider implements vscode.FileDecorationProvider {
     private gitAPI: any = null;
     private repositories: any[] = [];
     private _onDidChangeFileDecorations = new vscode.EventEmitter<vscode.Uri | vscode.Uri[]>();
+    private shouldDecorate: (uri: vscode.Uri) => Boolean | Promise<Boolean>;
 
-    constructor() {
+    constructor(shouldDecorate: (uri: vscode.Uri) => Boolean | Promise<Boolean>) {
         this.initializeGit();
+        this.shouldDecorate = shouldDecorate;
     }
 
     // Initialize Git API and set up repositories
@@ -139,6 +161,7 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
             // Notify that decorations need to be updated
             const files = await vscode.workspace.findFiles(new vscode.RelativePattern(repository.rootUri, '**/*'));
             files.forEach((uri: vscode.Uri) => {
+                if (!this.shouldDecorate(uri)) return;
                 this._onDidChangeFileDecorations.fire(vscode.Uri.parse(`scolution:/${uri}`));
             });
         });
@@ -191,12 +214,10 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
     }
 
     // Helper method to get file status
-    private getFileStatus(repository: any, uri: vscode.Uri): string | undefined {
-        const relativePath = vscode.workspace.asRelativePath(uri);
-        
+    private getFileStatus(repository: any, uri: vscode.Uri): Status | undefined {
         // Check working tree changes
         const workingTreeChanges = repository.state.workingTreeChanges;
-        const workingTreeChange = workingTreeChanges.find((change: any) => 
+        const workingTreeChange = workingTreeChanges.find((change: Change) => 
             change.uri.fsPath === uri.fsPath
         );
         if (workingTreeChange) {
@@ -205,7 +226,7 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
 
         // Check staged changes
         const indexChanges = repository.state.indexChanges;
-        const indexChange = indexChanges.find((change: any) => 
+        const indexChange = indexChanges.find((change: Change) => 
             change.uri.fsPath === uri.fsPath
         );
         if (indexChange) {

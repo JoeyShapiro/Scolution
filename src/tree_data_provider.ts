@@ -172,6 +172,15 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         this.refresh();
     }
 
+    contains(uri: vscode.Uri): Boolean {
+        const path = uri.fsPath;
+        const elements = Object.values(this.root.tree).filter(value => {
+            if (!value.path == undefined) return false;
+            value.path === path
+        });
+        return elements.length > 0;
+    }
+
     element(uuid?: UUID | null): TreeItem {
         if (!uuid) return this.root.tree[this.root.root];
 
