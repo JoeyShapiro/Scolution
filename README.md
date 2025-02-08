@@ -26,5 +26,8 @@ Solution Viewer similiar to Visual Studio or XCode
   - uri works fine except for root. onchange works fine except for items with no command
     - convulted but makes sense
   - [ ] make arrows change current
-    - [ ] expand with arrow
-    - [ ] go to root
+    - expand with arrow
+    - go to root
+- [ ] welcome page
+- [ ] add .file on welcome
+- [ ] change provideFileDecoration to be faster by parsing file

@@ -9,6 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
     const treeDataProvider = new TreeDataProvider();
     const treeView = vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
 
+    const deco = new TreeItemDecorationProvider();
+
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {
         treeDataProvider.refresh();
@@ -111,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // register the decoration provider
-    vscode.window.registerFileDecorationProvider(new TreeItemDecorationProvider())
+    vscode.window.registerFileDecorationProvider(deco)
 
     context.subscriptions.push(refreshCommand,
         newFileCommand, newFilterCommand, contextNewFileCommand, contextNewFilterCommand, removeCommand, dummyCommand,

@@ -107,6 +107,7 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
 
     // Initialize Git API and set up repositories
     private async initializeGit() {
+        let status = "";
         try {
             const extension = vscode.extensions.getExtension('vscode.git');
             if (extension) {
@@ -122,17 +123,24 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
 
                 // Set up listeners for existing repositories
                 this.repositories.forEach(repo => this.setupRepositoryListeners(repo));
+                status = "success";
+            } else {
+                status = "missing vscode.git";
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to initialize Git API:', error);
+            status = error;
         }
     }
 
     // Set up repository state change listeners
     private setupRepositoryListeners(repository: any) {
-        repository.state.onDidChange(() => {
+        repository.state.onDidChange(async () => {
             // Notify that decorations need to be updated
-            this._onDidChangeFileDecorations.fire(vscode.Uri.parse(''));
+            const files = await vscode.workspace.findFiles(new vscode.RelativePattern(repository.rootUri, '**/*'));
+            files.forEach((uri: vscode.Uri) => {
+                this._onDidChangeFileDecorations.fire(vscode.Uri.parse(`scolution:/${uri}`));
+            });
         });
     }
 
@@ -149,6 +157,10 @@ export class TreeItemDecorationProvider implements vscode.FileDecorationProvider
         if (!this.gitAPI || !this.repositories.length) {
             return undefined;
         }
+
+        // unwrap scheme
+        const file = uri.path.replace('/file:', 'file:');
+        uri = vscode.Uri.parse(file);
 
         try {
             // Find the repository that contains this file
