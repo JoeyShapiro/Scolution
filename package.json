@@ -28,10 +28,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "scolution.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "tree-view.newFile",
         "title": "Add File to Root",
         "icon": "$(new-file)"

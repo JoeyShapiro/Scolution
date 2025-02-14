@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (!workspaceRoot || workspaceRoot.length == 0) return false;
     const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
     if (fs.existsSync(vscodePath)) {
-        vscode.commands.executeCommand('setContext', contextKey, true)
+        vscode.commands.executeCommand('setContext', contextKey, true);
         init();
     }
 
@@ -116,18 +116,12 @@ export function activate(context: vscode.ExtensionContext) {
         if (!item) return;
     });
 
-    // Hello World command
-    let helloCommand = vscode.commands.registerCommand('scolution.helloWorld', () => {
-        vscode.window.showInformationMessage('Hello from your first VS Code extension!');
-    });
-
     // register the decoration provider
     vscode.window.registerFileDecorationProvider(deco);
 
     context.subscriptions.push(refreshCommand,
         newFileCommand, newFilterCommand, contextNewFileCommand, contextNewFilterCommand, removeCommand, dummyCommand,
-        contextInit,
-        helloCommand
+        contextInit
     );
 }
 
