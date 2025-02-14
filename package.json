@@ -2,14 +2,27 @@
   "name": "scolution",
   "displayName": "Scolution",
   "description": "solution explorer for vscode projects",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.0"
   },
-  "repository": { "url": "https://github.com/JoeyShapiro/Scolution" },
+  "publisher": "JoeyShapiro",
+  "icon": "media/icon.png",
+  "repository": { 
+    "type": "git",
+    "url": "https://github.com/JoeyShapiro/Scolution.git" 
+  },
   "categories": [
     "Other"
   ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "bugs": {
+    "url": "https://github.com/JoeyShapiro/Scolution/issues"
+  },
+  "license": "MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -51,7 +64,7 @@
         {
           "id": "solution",
           "title": "Solution Explorer",
-          "icon": "media/icon.svg"
+          "icon": "media/icon.png"
         }
       ]
     },

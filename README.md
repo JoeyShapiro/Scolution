@@ -39,3 +39,4 @@ Solution Viewer similiar to Visual Studio or XCode
   - [ ] hide hidden files
   - [ ] disable git
 - [ ] force files in workspace
+- [ ] get a better quality image
