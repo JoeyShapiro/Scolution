@@ -1,4 +1,4 @@
-# scolution README
+# scolution
 
 Solution Viewer similiar to Visual Studio or XCode
 
@@ -39,6 +39,6 @@ Solution Viewer similiar to Visual Studio or XCode
   - [ ] hide hidden files
   - [ ] disable git
 - [ ] force files in workspace
-- [ ] get a better quality image
-- [ ] "compile": "npx swc src -o out/extension.js"
+- [x] get a better quality image
+- [ ] "compile": "npx swc src --ignore **/*.test.js -o out/extension.js"
 - [x] add utils

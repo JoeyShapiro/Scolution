@@ -54,11 +54,17 @@ export function activate(context: vscode.ExtensionContext) {
             canSelectFiles: true,
             canSelectFolders: false,
             canSelectMany: true,
-            defaultUri: folders[0].uri // always 1, always workspace. i think
+            defaultUri: folders[0].uri, // always 1, always workspace. i think
         });
         if (!files) return;
 
         for (const file of files) {
+            // check they are all in the right folder
+            if (!file.fsPath.startsWith(folders[0].uri.fsPath)) {
+                vscode.window.showErrorMessage('Please select a file from the current workspace');
+                return;
+            }
+
             const path = file.path.split('/');
             const basename = path[path.length-1].split('.');
             const name = basename[0] || path[path.length-1]
