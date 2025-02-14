@@ -25,11 +25,11 @@ Solution Viewer similiar to Visual Studio or XCode
   -  need separate commands
   - uri works fine except for root. onchange works fine except for items with no command
     - convulted but makes sense
-  - [ ] make arrows change current
+  - make arrows change current
     - expand with arrow
     - go to root
-- [ ] welcome page
-- [ ] add .file on welcome
+- [x] welcome page
+- [x] add .file on welcome
 - [ ] change provideFileDecoration to be faster by parsing file
   - [ ] only provide needed files
   - [ ] handle unwrapping better
@@ -41,4 +41,4 @@ Solution Viewer similiar to Visual Studio or XCode
 - [ ] force files in workspace
 - [ ] get a better quality image
 - [ ] "compile": "npx swc src -o out/extension.js"
-- [ ] add utils
+- [x] add utils

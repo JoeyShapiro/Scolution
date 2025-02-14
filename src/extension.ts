@@ -2,8 +2,9 @@ import * as vscode from 'vscode';
 import { TreeDataProvider } from './tree_data_provider'
 import { TreeItem } from './tree_item'
 import { TreeItemDecorationProvider } from './decoration_provider'
-import path from 'path';
 import fs from 'fs';
+import { vscodePath } from './util';
+import path from 'path';
 
 const contextKey = "workspaceHasScolution";
 
@@ -12,26 +13,25 @@ export function activate(context: vscode.ExtensionContext) {
 
     let treeDataProvider: TreeDataProvider|undefined;
     const init = () => {
-        treeDataProvider = new TreeDataProvider();
-        vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
-
         // Update context when files change
-        const workspaceRoot = vscode.workspace.workspaceFolders;
-        if (!workspaceRoot || workspaceRoot.length == 0) return;
+        const dotfolder = vscodePath();
+        if (!dotfolder) return;
         const fileWatcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(workspaceRoot[0], '.vscode/scolution.json')
+            new vscode.RelativePattern(dotfolder, 'scolution.json')
         );
 
         fileWatcher.onDidCreate(() => vscode.commands.executeCommand('setContext', contextKey, true));
         fileWatcher.onDidDelete(() => vscode.commands.executeCommand('setContext', contextKey, false));
 
         context.subscriptions.push(fileWatcher);
+
+        treeDataProvider = new TreeDataProvider();
+        vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
     };
 
-    const workspaceRoot = vscode.workspace.workspaceFolders;
-    if (!workspaceRoot || workspaceRoot.length == 0) return false;
-    const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
-    if (fs.existsSync(vscodePath)) {
+    const dotfolder = vscodePath();
+    if (!dotfolder) return;
+    if (fs.existsSync(path.join(dotfolder, "scolution.json"))) {
         vscode.commands.executeCommand('setContext', contextKey, true);
         init();
     }

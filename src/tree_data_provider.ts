@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import fs from 'fs';
 import { TreeItem } from './tree_item'
 import { UUID } from 'crypto';
+import { vscodePath } from './util';
 
 class StorageData {
     readonly version: string = "1.0.0";
@@ -24,10 +25,9 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private root: StorageData = new StorageData();
 
     constructor() {
-        const workspaceRoot = vscode.workspace.workspaceFolders;
-        if (!workspaceRoot || workspaceRoot.length == 0) return;
-        const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
-        this.storagePath = path.join(vscodePath, this.filename);
+        const dotfolder = vscodePath();
+        if (!dotfolder) return;
+        this.storagePath = path.join(dotfolder, this.filename);
 
         this.root = this.getData() || new StorageData();
 
@@ -61,11 +61,10 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             }
 
             // Create .vscode directory if it doesn't exist
-            const workspaceRoot = vscode.workspace.workspaceFolders;
-            if (!workspaceRoot || workspaceRoot.length == 0) return false;
-            const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
-            if (!fs.existsSync(vscodePath)) {
-                fs.mkdirSync(vscodePath);
+            const dotfolder = vscodePath();
+            if (!dotfolder) return false;
+            if (!fs.existsSync(dotfolder)) {
+                fs.mkdirSync(dotfolder);
             }
 
             fs.writeFileSync(this.storagePath, JSON.stringify(this.root, null, 2));
@@ -74,26 +73,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             console.error('Error saving workspace data:', error);
             return false;
         }
-    }
-
-    public watchStorage(callback: () => void) {
-        if (!this.storagePath) {
-            return;
-        }
-
-        // Watch for changes to the storage file
-        const watcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(
-                path.dirname(this.storagePath),
-                path.basename(this.storagePath)
-            )
-        );
-
-        watcher.onDidChange(callback);
-        watcher.onDidCreate(callback);
-        watcher.onDidDelete(callback);
-
-        return watcher;
     }
 
     refresh(): void {
