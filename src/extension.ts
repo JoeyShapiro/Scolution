@@ -2,20 +2,48 @@ import * as vscode from 'vscode';
 import { TreeDataProvider } from './tree_data_provider'
 import { TreeItem } from './tree_item'
 import { TreeItemDecorationProvider } from './decoration_provider'
+import path from 'path';
+import fs from 'fs';
+
+const contextKey = "workspaceHasScolution";
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "scolution" is now active!');
 
-    // Register the tree data provider
-    const treeDataProvider = new TreeDataProvider();
-    const treeView = vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
+    let treeDataProvider: TreeDataProvider|undefined;
+    const init = () => {
+        treeDataProvider = new TreeDataProvider();
+        vscode.window.createTreeView('tree-view', { treeDataProvider, showCollapseAll: true }); // registerTreeDataProvider
+
+        // Update context when files change
+        const workspaceRoot = vscode.workspace.workspaceFolders;
+        if (!workspaceRoot || workspaceRoot.length == 0) return;
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(workspaceRoot[0], '.vscode/scolution.json')
+        );
+
+        fileWatcher.onDidCreate(() => vscode.commands.executeCommand('setContext', contextKey, true));
+        fileWatcher.onDidDelete(() => vscode.commands.executeCommand('setContext', contextKey, false));
+
+        context.subscriptions.push(fileWatcher);
+    };
+
+    const workspaceRoot = vscode.workspace.workspaceFolders;
+    if (!workspaceRoot || workspaceRoot.length == 0) return false;
+    const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
+    if (fs.existsSync(vscodePath)) {
+        vscode.commands.executeCommand('setContext', contextKey, true)
+        init();
+    }
+
+    const contextInit = vscode.commands.registerCommand('scolution.init', () => init);
 
     const deco = new TreeItemDecorationProvider((uri: vscode.Uri) => {
-        return treeDataProvider.contains(uri);
+        return treeDataProvider?.contains(uri) ?? false;
     });
 
     const newFile = async (item?: TreeItem) => {
-        if (!item) return;
+        if (!item || !treeDataProvider) return;
 
         const folders = vscode.workspace.workspaceFolders
         if (!folders) {
@@ -48,18 +76,22 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Command to refresh the tree view
     let refreshCommand = vscode.commands.registerCommand('scolution.refreshTree', () => {
+        if (!treeDataProvider) return;
         treeDataProvider.refresh();
     });
 
     let newFileCommand = vscode.commands.registerCommand('tree-view.newFile', async () => {
+        if (!treeDataProvider) return;
         newFile(treeDataProvider.tree());
     });
 
     let contextNewFileCommand = vscode.commands.registerCommand('tree-view.context.newFile', async (item?: TreeItem) => {
+        if (!treeDataProvider) return;
         newFile(item || treeDataProvider.tree());
     });
     
     let newFilterCommand = vscode.commands.registerCommand('tree-view.newFilter', async () => {
+        if (!treeDataProvider) return;
         const parent = treeDataProvider.tree();
         if (!parent) return;
 
@@ -67,6 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let contextNewFilterCommand = vscode.commands.registerCommand('tree-view.context.newFilter', async (item?: TreeItem) => {
+        if (!treeDataProvider) return;
         const parent = item || treeDataProvider.tree();
         if (!parent) return;
 
@@ -74,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let removeCommand = vscode.commands.registerCommand('tree-view.remove', async (item?: TreeItem) => {
-        if (!item) return;
+        if (!item || !treeDataProvider) return;
 
         treeDataProvider.remove(item.uuid);
     });
@@ -89,10 +122,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // register the decoration provider
-    vscode.window.registerFileDecorationProvider(deco)
+    vscode.window.registerFileDecorationProvider(deco);
 
     context.subscriptions.push(refreshCommand,
         newFileCommand, newFilterCommand, contextNewFileCommand, contextNewFilterCommand, removeCommand, dummyCommand,
+        contextInit,
         helloCommand
     );
 }

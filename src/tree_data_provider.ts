@@ -29,11 +29,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
         this.storagePath = path.join(vscodePath, this.filename);
 
-        // Create .vscode directory if it doesn't exist
-        if (!fs.existsSync(vscodePath)) {
-            fs.mkdirSync(vscodePath);
-        }
-
         this.root = this.getData() || new StorageData();
 
         // clean tree
@@ -63,6 +58,14 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         try {
             if (!this.storagePath) {
                 return false;
+            }
+
+            // Create .vscode directory if it doesn't exist
+            const workspaceRoot = vscode.workspace.workspaceFolders;
+            if (!workspaceRoot || workspaceRoot.length == 0) return false;
+            const vscodePath = path.join(workspaceRoot[0].uri.fsPath, '.vscode');
+            if (!fs.existsSync(vscodePath)) {
+                fs.mkdirSync(vscodePath);
             }
 
             fs.writeFileSync(this.storagePath, JSON.stringify(this.root, null, 2));

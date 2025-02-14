@@ -40,3 +40,5 @@ Solution Viewer similiar to Visual Studio or XCode
   - [ ] disable git
 - [ ] force files in workspace
 - [ ] get a better quality image
+- [ ] "compile": "npx swc src -o out/extension.js"
+- [ ] add utils
